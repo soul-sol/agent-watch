@@ -20,11 +20,11 @@ No dependencies beyond a POSIX shell and coreutils.
 
 ```bash
 # 1. launch a worker in the background — records .log, .pid and .exit
-./worker_launch.sh api_task ./logs -- codex exec --skip-git-repo-check -C "$PWD" \
+./worker_launch.sh api_task ./logs -- codex exec --json --skip-git-repo-check -C "$PWD" \
   -m <MODEL> -s workspace-write "TASK: fix the billing status mapping. VERIFY: npm test -- billing. REPORT: end with DONE: <summary>."
 
 # 2. ask what happened, any time
-./worker_watch.sh api_task "$(cat logs/api_task.pid)" logs/api_task.log codex logs/api_task.exit
+./worker_watch.sh api_task "$(cat logs/api_task.pid)" logs/api_task.log codex-json logs/api_task.exit
 ```
 
 Output is one of:
@@ -42,6 +42,7 @@ STALL api_task — process exited without a completion conclusion
 
 - **Exit code is recorded to a file, not inferred.** A background process's status is gone the moment you stop waiting for it; `worker_launch.sh` writes `$?` to `<name>.exit` so the watcher can tell a clean exit from an error exit later.
 - **Markers are read from the log tail only.** If your worker read a document that mentions the completion marker, it can echo that string mid-run. Matching anywhere in the file gives you a false DONE; matching in the last 40 lines does not.
+- **Prefer structured events when the tool has them.** `codex exec --json` emits JSONL where `turn.completed` / `turn.failed` are authoritative terminal events. Pass `codex-json` as the `kind` and the watcher reads those instead of matching prose — no false DONE when a retrieved document happens to contain a completion phrase. The text marker stays available as `codex` for older versions.
 - **Completion markers differ per tool.** `codex` prints a token-usage line when it finishes normally; other CLIs don't. Pass `codex` or `other` as the `kind` argument and the watcher applies the right rule — never generalize one tool's marker to another.
 - **No long sleep loops.** The watcher answers once and exits, so you can call it from a poll, a Makefile, or another agent without holding a process open.
 

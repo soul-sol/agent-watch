@@ -2,7 +2,10 @@
 set -u
 
 # Usage: worker_watch.sh <name> <pid> <log> <kind> <exit-file>
-# kind: codex | other
+# kind: codex-json | codex | other
+#   codex-json : parse `codex exec --json` JSONL terminal events (most robust)
+#   codex      : legacy text marker (`tokens used`) for older Codex versions
+#   other      : process exit + a DONE/FAILED conclusion the agent was asked to print
 # Pass through the .pid/.log/.exit left by worker_launch.sh unchanged.
 # Search for markers only at the "end" of the log, because the same phrases may be echoed from documents read by the worker.
 name="${1:?name required}"
@@ -45,7 +48,25 @@ if [[ "$exit_code" != "0" ]]; then
   exit 2
 fi
 
-if [[ "$kind" == "codex" ]]; then
+if [[ "$kind" == "codex-json" ]]; then
+  # codex exec --json emits JSONL; the terminal events are authoritative.
+  # Scan the tail for the last turn.* event rather than matching prose.
+  last_event=$(tail -n 200 "$log" | grep -oE '"type":"turn\.(completed|failed)"' | tail -n 1)
+  if [[ "$last_event" == *"turn.completed"* ]]; then
+    echo "DONE $name — codex turn.completed"
+    exit 0
+  fi
+  if [[ "$last_event" == *"turn.failed"* ]]; then
+    echo "FAILED $name — codex turn.failed"
+    tail -n 12 "$log"
+    exit 2
+  fi
+  if tail -n 200 "$log" | grep -q '"type":"error"'; then
+    echo "FAILED $name — codex error event"
+    tail -n 12 "$log"
+    exit 2
+  fi
+elif [[ "$kind" == "codex" ]]; then
   if tail -n 40 "$log" | grep -q "tokens used"; then
     echo "DONE $name — codex marker found"
     exit 0
