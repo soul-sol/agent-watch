@@ -6,12 +6,55 @@ When you run coding agents in the background (`codex exec`, `claude -p`, `gemini
 
 `agent-watch` distinguishes four states — **RUNNING / DONE / FAILED / STALL** — using the only signals that don't lie: the process, the recorded exit code, and a completion marker read from the *tail* of the log.
 
+## Preflight: is it the network, or the credential?
+
+A sandboxed worker that cannot resolve DNS and a worker with a bad token fail in ways
+that look almost identical once a tool re-words the error. `gh` reporting a resolution
+failure reads close enough to an auth problem that a model will confidently report the
+wrong cause and stop.
+
+`worker_preflight.sh` classifies the transport layer before the worker starts, so the
+agent never has to infer that distinction from tool wording.
+
+```bash
+./worker_preflight.sh              # transport only
+./worker_preflight.sh --auth       # transport, then credentials if reachable
+./worker_preflight.sh --host example.com --api https://example.com/health
+```
+
+| Output | Exit | Meaning |
+|---|---:|---|
+| `NET_DISABLED` | 3 | DNS or transport failed. Not a credential problem. |
+| `API_UNAVAILABLE` | 4 | Host reachable, endpoint is not. A proxy allowlist missing this host looks exactly like this. |
+| `NET_OK` | 0 | Transport proven. |
+| `AUTH_OK` | 0 | Transport proven, then credentials accepted. |
+| `AUTH_FAILED` | 5 | Transport proven, so a credential conclusion is finally safe to draw. |
+
+Two rules it follows:
+
+1. **The transport probes run with no credential in the child process.** Re-injecting a
+   known-good token before proving reachability does not distinguish auth from DNS, and it
+   widens the set of processes that can read the token. The parent environment is untouched.
+2. **The auth probe runs only after transport is proven**, and only when you ask for it.
+
+Nothing prints an environment value — states are printed, secrets are not.
+
+On Codex specifically, `workspace-write` starts with network disabled. Enabling
+`sandbox_workspace_write.network_access` without a proxy gives broad egress; domain rules do
+not grant access by themselves. If a worker only needs one API, a proxy allowlist for those
+exact endpoints is narrower than opening egress wholesale.
+
+Credit: this separation was suggested by [@ooocooc](https://github.com/ooocooc) in
+[openai/codex#42402](https://github.com/openai/codex/discussions/42402).
+
+
 ## Install
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/soul-sol/agent-watch/main/worker_launch.sh
 curl -fsSLO https://raw.githubusercontent.com/soul-sol/agent-watch/main/worker_watch.sh
-chmod +x worker_launch.sh worker_watch.sh
+curl -fsSLO https://raw.githubusercontent.com/soul-sol/agent-watch/main/worker_preflight.sh
+chmod +x worker_launch.sh worker_watch.sh worker_preflight.sh
 ```
 
 No dependencies beyond a POSIX shell and coreutils.
