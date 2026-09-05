@@ -6,6 +6,13 @@ When you run coding agents in the background (`codex exec`, `claude -p`, `gemini
 
 `agent-watch` distinguishes four states — **RUNNING / DONE / FAILED / STALL** — using the only signals that don't lie: the process, the recorded exit code, and a completion marker read from the *tail* of the log.
 
+> These scripts came out of running Claude Code and Codex workers in parallel every day.
+> The incidents behind them — what the agent claimed, what actually happened, and the gate
+> that catches it next time — are written up at
+> [status.lifestep.io/incidents](https://status.lifestep.io/incidents/).
+> The full rule set is [The CLAUDE.md Pattern Library](https://lifestep1.gumroad.com/l/claude-md-pattern-library) ($9);
+> these scripts stay free and MIT either way.
+
 ## Preflight: is it the network, or the credential?
 
 A sandboxed worker that cannot resolve DNS and a worker with a bad token fail in ways
