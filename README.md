@@ -1,5 +1,59 @@
 # agent-watch
 
+## GitHub Actions completion gate
+
+Copy this workflow and replace the prompt with the task your Codex worker should
+complete. The final gate accepts only a recorded zero exit code plus Codex's
+structured `turn.completed` event.
+
+```yaml
+name: Verify agent completion
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  agent-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Codex CLI
+        run: npm install --global @openai/codex
+
+      - id: worker
+        name: Run worker and record durable evidence
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        shell: bash
+        run: |
+          mkdir -p .agent-watch
+          set +e
+          codex exec --json --skip-git-repo-check -C "$PWD" \
+            "Run the requested checks and finish the task." \
+            > .agent-watch/pr-check.log 2>&1 &
+          pid=$!
+          printf 'pid=%s\n' "$pid" >> "$GITHUB_OUTPUT"
+          wait "$pid"
+          printf '%s\n' "$?" > .agent-watch/pr-check.exit
+
+      - name: Require completion evidence
+        uses: soul-sol/agent-watch@v1
+        with:
+          name: pr-check
+          pid: ${{ steps.worker.outputs.pid }}
+          log: .agent-watch/pr-check.log
+          kind: codex-json
+          exit_file: .agent-watch/pr-check.exit
+```
+
+The action exposes `status`, `summary`, and `watch_exit_code` outputs. Unlike the
+one-shot watcher, the CI gate treats `RUNNING` as a failure because completion
+has not yet been proven.
+
 **Is your background AI agent done, failed, or just stuck?** Two small POSIX shell scripts that answer that question honestly.
 
 When you run coding agents in the background (`codex exec`, `claude -p`, `gemini`, or any CLI), the hard part is not starting them — it's knowing what happened. A worker that silently stopped to wait for approval looks exactly like a worker that is still thinking. A worker that crashed looks exactly like a worker that finished, if you only check that the process is gone.

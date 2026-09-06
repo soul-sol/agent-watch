@@ -1,0 +1,91 @@
+name: "Agent Watch — agent completion gate"
+description: "Fail CI unless a finished AI worker has a zero exit code and a supported completion marker."
+author: "soul-sol"
+
+branding:
+  icon: "activity"
+  color: "purple"
+
+inputs:
+  name:
+    description: "Worker name shown in the gate result."
+    required: false
+    default: "worker"
+  pid:
+    description: "Recorded numeric worker PID."
+    required: true
+  log:
+    description: "Path to the worker log produced by the caller."
+    required: true
+  kind:
+    description: "Completion marker format: codex-json, codex, or other."
+    required: false
+    default: "other"
+  exit_file:
+    description: "Path to the file containing the recorded worker exit code."
+    required: true
+
+outputs:
+  status:
+    description: "Watcher state: DONE, RUNNING, FAILED, or STALL."
+    value: ${{ steps.gate.outputs.status }}
+  summary:
+    description: "The first diagnostic line emitted by worker_watch.sh."
+    value: ${{ steps.gate.outputs.summary }}
+  watch_exit_code:
+    description: "Exit code returned by worker_watch.sh before completion-gate enforcement."
+    value: ${{ steps.gate.outputs.watch_exit_code }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: gate
+      name: Verify worker completion evidence
+      shell: bash
+      env:
+        AGENT_WATCH_NAME: ${{ inputs.name }}
+        AGENT_WATCH_PID: ${{ inputs.pid }}
+        AGENT_WATCH_LOG: ${{ inputs.log }}
+        AGENT_WATCH_KIND: ${{ inputs.kind }}
+        AGENT_WATCH_EXIT_FILE: ${{ inputs.exit_file }}
+      run: |
+        set -u
+
+        case "$AGENT_WATCH_KIND" in
+          codex-json|codex|other) ;;
+          *)
+            printf 'invalid kind: %s (expected codex-json, codex, or other)\n' "$AGENT_WATCH_KIND" >&2
+            exit 2
+            ;;
+        esac
+
+        set +e
+        result=$("$GITHUB_ACTION_PATH/worker_watch.sh" \
+          "$AGENT_WATCH_NAME" \
+          "$AGENT_WATCH_PID" \
+          "$AGENT_WATCH_LOG" \
+          "$AGENT_WATCH_KIND" \
+          "$AGENT_WATCH_EXIT_FILE" 2>&1)
+        watch_exit_code=$?
+        set -e
+
+        summary=$(printf '%s\n' "$result" | sed -n '1{s/\r$//;p;}')
+        status=$(printf '%s\n' "$summary" | awk '{print $1}')
+
+        printf 'status=%s\n' "$status" >> "$GITHUB_OUTPUT"
+        printf 'summary=%s\n' "$summary" >> "$GITHUB_OUTPUT"
+        printf 'watch_exit_code=%s\n' "$watch_exit_code" >> "$GITHUB_OUTPUT"
+
+        command_token="agent-watch-${GITHUB_RUN_ID:-local}-${RANDOM}-$$"
+        printf '::stop-commands::%s\n' "$command_token"
+        printf '%s\n' "$result"
+        printf '::%s::\n' "$command_token"
+
+        if [ "$status" = "DONE" ]; then
+          exit 0
+        fi
+
+        if [ "$watch_exit_code" -eq 0 ]; then
+          exit 2
+        fi
+        exit "$watch_exit_code"
