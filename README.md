@@ -1,5 +1,11 @@
 # agent-watch
 
+Stall detection for background coding agents: a worker that exits without a completion
+marker is waiting for approval, not done.
+
+> These scripts are the operational core of [*Solo, Like a Team — Claude Code Multi-Agent Orchestration in Practice*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration),
+> the field manual for the incidents they came from. This repo is free and MIT licensed.
+
 ## GitHub Actions completion gate
 
 Copy this workflow and replace the prompt with the task your Codex worker should
@@ -110,6 +116,13 @@ Credit: this separation was suggested by [@ooocooc](https://github.com/ooocooc) 
 
 
 ## Install
+
+```bash
+brew tap soul-sol/tap
+brew install agent-watch
+```
+
+Installs as `agent-watch`, `agent-launch`, and `agent-preflight`. Or drop the scripts in directly:
 
 ```bash
 curl -fsSLO https://raw.githubusercontent.com/soul-sol/agent-watch/main/worker_launch.sh
