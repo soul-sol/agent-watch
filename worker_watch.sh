@@ -66,24 +66,30 @@ if [[ "$kind" == "codex-json" ]]; then
     tail -n 12 "$log"
     exit 2
   fi
-elif [[ "$kind" == "codex" ]]; then
-  if tail -n 40 "$log" | grep -q "tokens used"; then
-    echo "DONE $name — codex marker found"
-    exit 0
-  fi
-else
-  if tail -n 40 "$log" | grep -q "DONE"; then
-    echo "DONE $name — exit=0 and conclusion found; inspect result body"
-    tail -n 12 "$log"
-    exit 0
-  fi
-  if tail -n 40 "$log" | grep -q "FAILED"; then
-    echo "FAILED $name — worker reported failure"
-    tail -n 12 "$log"
-    exit 2
-  fi
+elif tail -n 40 "$log" | grep -q "FAILED"; then
+  echo "FAILED $name — worker reported failure"
+  tail -n 12 "$log"
+  exit 2
 fi
 
-echo "STALL $name — process exited without a completion conclusion"
+# A missing marker is not a STALL.
+#
+# The process exited with code 0 and printed no failure signal. That is a
+# completion *candidate*: the commander still has to read the result body, but
+# the watcher must not invent a stall. Requiring a tool-specific marker is what
+# made an earlier version report normal GLM and agy runs as stalled, because
+# `tokens used` is a Codex-only string.
+#
+# Markers are recorded as diagnostics and never change the disposition.
+marker="none"
+if [[ "$kind" == "codex-json" ]]; then
+  marker="no terminal turn.* event in tail (log may be truncated)"
+elif [[ "$kind" == "codex" ]] && tail -n 40 "$log" | grep -q "tokens used"; then
+  marker="codex 'tokens used' seen"
+elif tail -n 40 "$log" | grep -q "DONE"; then
+  marker="conclusion line seen"
+fi
+
+echo "DONE $name — exit=0; read the result body before accepting (diagnostic: $marker)"
 tail -n 12 "$log"
-exit 2
+exit 0
