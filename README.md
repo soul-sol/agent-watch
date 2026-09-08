@@ -121,6 +121,7 @@ Credit: this separation was suggested by [@ooocooc](https://github.com/ooocooc) 
 
 ```bash
 brew tap soul-sol/tap
+brew trust soul-sol/tap   # Homebrew refuses third-party taps until you trust them
 brew install agent-watch
 ```
 
