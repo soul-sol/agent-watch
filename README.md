@@ -9,8 +9,10 @@ marker is waiting for approval, not done.
 ## GitHub Actions completion gate
 
 Copy this workflow and replace the prompt with the task your Codex worker should
-complete. The final gate accepts only a recorded zero exit code plus Codex's
-structured `turn.completed` event.
+complete. The gate checks the recorded exit code and explicit failure signals in
+the result body. `DONE` is a completion candidate: read the result body and verify
+the requested work before accepting it. Completion markers are supplementary
+diagnostics; their absence alone is never `STALL`.
 
 ```yaml
 name: Verify agent completion
@@ -166,6 +168,10 @@ invalid, the log is missing, or the process exited without leaving an exit code.
 > `tokens used` is a Codex-only string, so normal GLM and agy runs — which never print it — were reported
 > as stalled. Requiring one tool's marker from every tool turns healthy work into false alarms. If you
 > forked this before 2026-09-09, pull again.
+
+With exit 0 and no detected failure signal the watcher returns `DONE` for result-body review. If that body
+only asks for approval, or reports no completed work, withhold acceptance on that evidence — the watcher
+reads exit codes and failure signals, not arbitrary prose.
 
 ## Why the details matter
 

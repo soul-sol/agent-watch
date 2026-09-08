@@ -1,5 +1,5 @@
 name: "Agent Watch — agent completion gate"
-description: "Fail CI unless a finished AI worker has a zero exit code and a supported completion marker."
+description: "Check recorded exit code and result-body failure signals; review the body before accepting DONE. Markers are diagnostic only."
 author: "soul-sol"
 
 branding:
@@ -18,7 +18,7 @@ inputs:
     description: "Path to the worker log produced by the caller."
     required: true
   kind:
-    description: "Completion marker format: codex-json, codex, or other."
+    description: "Result format and optional diagnostics: codex-json, codex, or other."
     required: false
     default: "other"
   exit_file:
@@ -86,6 +86,18 @@ runs:
         fi
 
         if [ "$watch_exit_code" -eq 0 ]; then
-          exit 2
+          printf 'gate_exit_code=2\n' >> "$GITHUB_OUTPUT"
+        else
+          printf 'gate_exit_code=%s\n' "$watch_exit_code" >> "$GITHUB_OUTPUT"
         fi
-        exit "$watch_exit_code"
+
+    - name: Enforce completion gate
+      shell: bash
+      env:
+        AGENT_WATCH_STATUS: ${{ steps.gate.outputs.status }}
+        AGENT_WATCH_GATE_EXIT_CODE: ${{ steps.gate.outputs.gate_exit_code }}
+      run: |
+        if [ "$AGENT_WATCH_STATUS" = "DONE" ]; then
+          exit 0
+        fi
+        exit "${AGENT_WATCH_GATE_EXIT_CODE:-2}"

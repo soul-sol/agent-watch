@@ -31,3 +31,17 @@ checked in this environment.
 Project-Tree sync to `https://project-tree.lifestep.io` was attempted before
 implementation and failed because DNS resolution is disabled (`http_status=000`).
 This document is the required repository-local fallback record.
+
+## Verification result
+
+- All action/workflow YAML files parsed with Node.js and `js-yaml`.
+- Every embedded Bash `run` block and all three shipped scripts passed
+  `bash -n`.
+- The exact composite-action shell blocks were executed locally. `DONE` passed;
+  Codex JSON completion passed; and `STALL`, `FAILED`, and `RUNNING` each failed
+  the completion gate with the expected status output.
+- `git diff --check` passed.
+
+GitHub-hosted `selftest.yml` could not be dispatched before push. The remaining
+owner steps are push, create/update the moving `v1` tag, publish a release, wait
+for the self-test, and submit the action to GitHub Marketplace.
