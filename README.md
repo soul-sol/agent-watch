@@ -134,7 +134,9 @@ curl -fsSLO https://raw.githubusercontent.com/soul-sol/agent-watch/main/worker_p
 chmod +x worker_launch.sh worker_watch.sh worker_preflight.sh
 ```
 
-No dependencies beyond a POSIX shell and coreutils.
+`worker_launch.sh` and `worker_watch.sh` need **bash** (they use `[[ … ]]`) plus standard
+command-line utilities. `worker_preflight.sh` is POSIX `sh` but **requires `curl`** — it exits 2
+without it — and uses the GitHub CLI when checking authentication; without `gh`, that check is skipped.
 
 ## Use
 
