@@ -224,5 +224,10 @@ MIT.
 - [Agent Ops for VS Code](https://github.com/soul-sol/vscode-agent-ops) - review prompts and agent rules in the Command Palette (VSIX install)
 - [Go Exec Format Doctor Action](https://github.com/soul-sol/go-exec-format-doctor) - CI gate for binary architecture mismatches
 
-The paid guide collection is available at [lifestep1.gumroad.com](https://lifestep1.gumroad.com).
+The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29) bundles what these
+scripts came from: the *Solo, Like a Team* book in English and Korean, the 30 `CLAUDE.md` patterns, the 25
+adversarial review prompts, and the orchestration templates in both languages (8 files each) — including the
+`worker_launch.sh` / `worker_watch.sh` pair here. Bought separately: $54.
+
+The individual products are at [lifestep1.gumroad.com](https://lifestep1.gumroad.com).
 <!-- xlink:end -->
