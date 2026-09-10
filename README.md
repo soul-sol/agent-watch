@@ -3,8 +3,9 @@
 Stall detection for background coding agents: a worker that exits without a completion
 marker is waiting for approval, not done.
 
-> These scripts are the operational core of [*Solo, Like a Team — Claude Code Multi-Agent Orchestration in Practice*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration),
-> the field manual for the incidents they came from. This repo is free and MIT licensed.
+> This repo is free and MIT licensed, and it covers one job: deciding whether a worker is done.
+> Deciding **what to hand a worker, how much it may change, and whether to accept the result** is
+> the other half — that half is the [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29).
 
 ## GitHub Actions completion gate
 
@@ -196,7 +197,20 @@ Run that after every wave and you always know which worker to re-dispatch.
 
 ## Where this comes from
 
-These scripts are the operational core of [*Solo, Like a Team — Claude Code Multi-Agent Orchestration in Practice*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration), a field manual for running one Claude Code session as the commander of a parallel worker pool. The book explains the incidents these rules came from — including the day a worker sat waiting for approval while its commander reported success.
+These scripts are the operational core of [*Solo, Like a Team*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration), a field manual for running one Claude Code session as the commander of a parallel worker pool. It explains the incidents these rules came from — including the day a worker sat waiting for approval while its commander reported success.
+
+**What this repo does not cover.** agent-watch tells you a worker stopped and whether the run
+failed. It says nothing about the three failures that happen on either side of that moment:
+
+- a worker that did the wrong work because the task it was handed was underspecified;
+- a worker that touched files it had no business touching, in a repo shared with other workers;
+- a result that passed its own tests and still should not have been merged or deployed.
+
+The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29) is the
+written half for those: task-brief and change-scope templates, a file-ownership map so parallel
+workers don't collide, 25 adversarial review prompts to run against a worker's diff before it
+lands, 30 `CLAUDE.md` rules, and the deploy/rollback gate — plus *Solo, Like a Team* in English
+and Korean. Bought separately: $54.
 
 Related free resources:
 - [claude-code-orchestration-ko](https://github.com/soul-sol/claude-code-orchestration-ko) — Korean guide + full template set (briefs, review gate, safety denylist)
@@ -224,10 +238,5 @@ MIT.
 - [Agent Ops for VS Code](https://github.com/soul-sol/vscode-agent-ops) - review prompts and agent rules in the Command Palette (VSIX install)
 - [Go Exec Format Doctor Action](https://github.com/soul-sol/go-exec-format-doctor) - CI gate for binary architecture mismatches
 
-The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29) bundles what these
-scripts came from: the *Solo, Like a Team* book in English and Korean, the 30 `CLAUDE.md` patterns, the 25
-adversarial review prompts, and the orchestration templates in both languages (8 files each) — including the
-`worker_launch.sh` / `worker_watch.sh` pair here. Bought separately: $54.
-
-The individual products are at [lifestep1.gumroad.com](https://lifestep1.gumroad.com).
+The paid guide collection is available at [lifestep1.gumroad.com](https://lifestep1.gumroad.com).
 <!-- xlink:end -->
