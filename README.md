@@ -210,7 +210,7 @@ The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-
 written half for those: task-brief and change-scope templates, a file-ownership map so parallel
 workers don't collide, 25 adversarial review prompts to run against a worker's diff before it
 lands, 30 `CLAUDE.md` rules, and the deploy/rollback gate — plus *Solo, Like a Team* in English
-and Korean. Bought separately: $54.
+and Korean. The same files bought as separate products: $49.
 
 Related free resources:
 - [claude-code-orchestration-ko](https://github.com/soul-sol/claude-code-orchestration-ko) — Korean guide + full template set (briefs, review gate, safety denylist)
