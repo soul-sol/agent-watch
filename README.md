@@ -5,7 +5,7 @@ marker is waiting for approval, not done.
 
 > This repo is free and MIT licensed, and it covers one job: deciding whether a worker is done.
 > Deciding **what to hand a worker, how much it may change, and whether to accept the result** is
-> the other half — that half is the [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29).
+> the other half — that half is the [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=github&utm_medium=readme&utm_campaign=agent-watch) ($29).
 
 ## GitHub Actions completion gate
 
@@ -206,7 +206,7 @@ failed. It says nothing about the three failures that happen on either side of t
 - a worker that touched files it had no business touching, in a repo shared with other workers;
 - a result that passed its own tests and still should not have been merged or deployed.
 
-The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit) ($29) is the
+The [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=github&utm_medium=readme&utm_campaign=agent-watch) ($29) is the
 written half for those: task-brief and change-scope templates, a file-ownership map so parallel
 workers don't collide, 25 adversarial review prompts to run against a worker's diff before it
 lands, 30 `CLAUDE.md` rules, and the deploy/rollback gate — plus *Solo, Like a Team* in English
