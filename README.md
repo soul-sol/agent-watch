@@ -197,7 +197,7 @@ Run that after every wave and you always know which worker to re-dispatch.
 
 ## Where this comes from
 
-These scripts are the operational core of [*Solo, Like a Team*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration), a field manual for running one Claude Code session as the commander of a parallel worker pool. It explains the incidents these rules came from — including the day a worker sat waiting for approval while its commander reported success.
+These scripts are the operational core of [*Solo, Like a Team*](https://lifestep1.gumroad.com/l/solo-like-a-team-claude-code-orchestration?utm_source=github&utm_medium=readme&utm_campaign=agent-watch-solo), a field manual for running one Claude Code session as the commander of a parallel worker pool. It explains the incidents these rules came from — including the day a worker sat waiting for approval while its commander reported success.
 
 **What this repo does not cover.** agent-watch tells you a worker stopped and whether the run
 failed. It says nothing about the three failures that happen on either side of that moment:
