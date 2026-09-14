@@ -1,11 +1,13 @@
 # agent-watch
 
-Stall detection for background coding agents: a worker that exits without a completion
-marker is waiting for approval, not done.
+Stall detection for background coding agents: the exit code is recorded to a file, so a
+worker that stopped is never mistaken for one still thinking.
 
-> This repo is free and MIT licensed, and it covers one job: deciding whether a worker is done.
-> Deciding **what to hand a worker, how much it may change, and whether to accept the result** is
-> the other half — that half is the [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=github&utm_medium=readme&utm_campaign=agent-watch) ($89).
+> **Weekly limit gone after one long run?** agent-watch reports worker status; it does not
+> measure or cap quota, and nothing here will give you more of it. What it can tell you is that
+> the run ended — and if that run did the wrong work or changed more than it should have, the
+> [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=github&utm_medium=readme&utm_campaign=agent-watch) ($89)
+> has the task-brief, change-scope and acceptance templates for defining the next run before it starts.
 
 ## A note on output
 
