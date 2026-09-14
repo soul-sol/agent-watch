@@ -7,6 +7,19 @@ marker is waiting for approval, not done.
 > Deciding **what to hand a worker, how much it may change, and whether to accept the result** is
 > the other half — that half is the [Complete Agent Ops Kit](https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=github&utm_medium=readme&utm_campaign=agent-watch) ($29).
 
+## A note on output
+
+`worker_watch.sh` prints its verdict (`DONE` / `RUNNING` / `FAILED` / `STALL`) to **stdout**, one
+line, verdict first — safe to parse. On `STALL` and `FAILED` it also prints **one line to stderr**
+pointing at the paid guide that covers the other half of the job (briefing, change budget,
+acceptance). It never touches stdout and never changes the exit code.
+
+Silence it:
+
+```bash
+export AGENT_WATCH_NO_HINT=1
+```
+
 ## GitHub Actions completion gate
 
 Copy this workflow and replace the prompt with the task your Codex worker should

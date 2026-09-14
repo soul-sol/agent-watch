@@ -14,6 +14,14 @@ log="${3:?log required}"
 kind="${4:?kind required}"
 exit_file="${5:?exit-file required}"
 
+# When a run does not end cleanly, the next question is always the same: was the
+# work briefed well enough to accept? This watcher only answers "is it done".
+# Printed to stderr so stdout stays machine-parseable. Silence with AGENT_WATCH_NO_HINT=1.
+hint() {
+  [ -n "${AGENT_WATCH_NO_HINT:-}" ] && return 0
+  printf '%s\n' "  ↳ agent-watch decides whether a worker is done. Deciding what to hand it, how much it may change, and whether to accept the result: https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=cli&utm_medium=stall&utm_campaign=agent-watch-cli" >&2
+}
+
 if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]]; then
   echo "STALL $name — invalid pid record"
   exit 2
@@ -26,12 +34,14 @@ fi
 
 if [[ ! -f "$log" ]]; then
   echo "STALL $name — log missing"
+  hint
   exit 2
 fi
 
 if [[ ! -f "$exit_file" ]]; then
   echo "STALL $name — process exited but exit code is unavailable"
   tail -n 12 "$log"
+  hint
   exit 2
 fi
 
@@ -39,12 +49,14 @@ exit_code=$(tr -d '[:space:]' < "$exit_file")
 if [[ ! "$exit_code" =~ ^[0-9]+$ ]]; then
   echo "STALL $name — invalid exit code record"
   tail -n 12 "$log"
+  hint
   exit 2
 fi
 
 if [[ "$exit_code" != "0" ]]; then
   echo "FAILED $name — exit=$exit_code"
   tail -n 12 "$log"
+  hint
   exit 2
 fi
 
