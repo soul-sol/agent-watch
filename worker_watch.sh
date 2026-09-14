@@ -17,13 +17,16 @@ exit_file="${5:?exit-file required}"
 # When a run does not end cleanly, the next question is always the same: was the
 # work briefed well enough to accept? This watcher only answers "is it done".
 # Printed to stderr so stdout stays machine-parseable. Silence with AGENT_WATCH_NO_HINT=1.
+# 힌트는 **판정이 나쁜 경로에서만** 나간다. RUNNING/DONE 에서는 절대 내지 않는다.
+# medium 으로 어느 실패 모드가 클릭을 만들었는지 구분한다 — 그게 없으면 '클릭 0' 의 이유를 못 가른다.
 hint() {
   [ -n "${AGENT_WATCH_NO_HINT:-}" ] && return 0
-  printf '%s\n' "  ↳ agent-watch decides whether a worker is done. Deciding what to hand it, how much it may change, and whether to accept the result: https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=cli&utm_medium=stall&utm_campaign=agent-watch-cli" >&2
+  printf '%s\n' "  ↳ agent-watch decides whether a worker is done. Deciding what to hand it, how much it may change, and whether to accept the result: https://lifestep1.gumroad.com/l/complete-agent-ops-kit?utm_source=cli&utm_medium=${1:-stall}&utm_campaign=agent-watch-cli" >&2
 }
 
 if [[ ! "$pid" =~ ^[1-9][0-9]*$ ]]; then
   echo "STALL $name — invalid pid record"
+  hint stall
   exit 2
 fi
 
@@ -34,14 +37,14 @@ fi
 
 if [[ ! -f "$log" ]]; then
   echo "STALL $name — log missing"
-  hint
+  hint stall
   exit 2
 fi
 
 if [[ ! -f "$exit_file" ]]; then
   echo "STALL $name — process exited but exit code is unavailable"
   tail -n 12 "$log"
-  hint
+  hint stall
   exit 2
 fi
 
@@ -49,14 +52,14 @@ exit_code=$(tr -d '[:space:]' < "$exit_file")
 if [[ ! "$exit_code" =~ ^[0-9]+$ ]]; then
   echo "STALL $name — invalid exit code record"
   tail -n 12 "$log"
-  hint
+  hint stall
   exit 2
 fi
 
 if [[ "$exit_code" != "0" ]]; then
   echo "FAILED $name — exit=$exit_code"
   tail -n 12 "$log"
-  hint
+  hint failed
   exit 2
 fi
 
@@ -71,16 +74,19 @@ if [[ "$kind" == "codex-json" ]]; then
   if [[ "$last_event" == *"turn.failed"* ]]; then
     echo "FAILED $name — codex turn.failed"
     tail -n 12 "$log"
+    hint failed
     exit 2
   fi
   if tail -n 200 "$log" | grep -q '"type":"error"'; then
     echo "FAILED $name — codex error event"
     tail -n 12 "$log"
+    hint failed
     exit 2
   fi
 elif tail -n 40 "$log" | grep -q "FAILED"; then
   echo "FAILED $name — worker reported failure"
   tail -n 12 "$log"
+  hint failed
   exit 2
 fi
 
